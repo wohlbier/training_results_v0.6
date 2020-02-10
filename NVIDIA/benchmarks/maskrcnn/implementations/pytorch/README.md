@@ -1,4 +1,4 @@
-# 1. Problem 
+# 1. Problem
 This benchmark uses Mask R-CNN for object detection.
 
 ## Requirements
@@ -10,19 +10,19 @@ This benchmark uses Mask R-CNN for object detection.
 ### Steps to download and verify data
 The Mask R-CNN script operates on COCO, a large-scale object detection, segmentation, and captioning dataset.
 To download and verify the dataset use following scripts:
-   
+
     cd ~/reference/object_detection/
     ./download_dataset.sh
     ./verify_dataset.sh
 
-This should return `PASSED`. 
+This should return `PASSED`.
 To extract the dataset use:
-   
+
     ./caffe2/extract_dataset.sh
 
-Mask R-CNN uses pre-trained ResNet50 as a backbone. 
+Mask R-CNN uses pre-trained ResNet50 as a backbone.
 To download and verify the RN50 weights use:
- 
+
     ./download_weights.sh
 
 ## Steps to launch training
@@ -44,8 +44,9 @@ single node submission are in the `config_DGX2.sh` script.
 Steps required to launch single node training on NVIDIA DGX-2:
 
 ```
-docker build --pull -t mlperf-nvidia:object_detection .
-DATADIR=<path/to/data/dir> LOGDIR=<path/to/output/dir> PULL=0 DGXSYSTEM=DGX2 ./run.sub
+docker build --build-arg PROXY=$http_proxy --pull -t mlperf-nvidia:object_detection .
+nvidia-docker run -v /home/jgwohlbier/mlperf/data/object_detection/coco:/workspace/object_detection/coco --shm-size=32768m --security-opt seccomp=seccomp.json -it mlperf-nvidia:object_detection /bin/bash
+# DATADIR=<path/to/data/dir> LOGDIR=<path/to/output/dir> PULL=0 DGXSYSTEM=DGX2 ./run.sub
 ```
 
 ### NVIDIA DGX-1 (multi node)
@@ -120,7 +121,7 @@ We use a SGD Momentum based optimizer with weight decay of 0.0001 and momentum o
 As Mask R-CNN can provide both boxes and masks, we evaluate on both box and mask mAP.
 
 ### Quality target
-Box mAP of 0.377, mask mAP of 0.339 
+Box mAP of 0.377, mask mAP of 0.339
 
 ### Evaluation frequency
 Once per epoch, 118k.

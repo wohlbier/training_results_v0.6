@@ -22,7 +22,8 @@ ENV https_proxy $PROXY
 # Install dependencies for system configuration logger
 RUN apt-get update && apt-get install -y --no-install-recommends \
         infiniband-diags \
-        pciutils && \
+        pciutils \
+        emacs && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies

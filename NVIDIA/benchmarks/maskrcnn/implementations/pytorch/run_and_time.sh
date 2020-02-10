@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# jgw
+export CUDA_VISIBLE_DEVICES=0,1,2,3,6,7,8,9,10,11,12,13,14,15
+DGXSYSTEM=DGX2
+
 DGXSYSTEM=${DGXSYSTEM:-"DGX1"}
 if [[ -f config_${DGXSYSTEM}.sh ]]; then
   source config_${DGXSYSTEM}.sh
@@ -41,7 +45,7 @@ python -m bind_launch \
   --config-file 'configs/e2e_mask_rcnn_R_50_FPN_1x.yaml' \
   DTYPE 'float16' \
   PATHS_CATALOG 'maskrcnn_benchmark/config/paths_catalog_dbcluster.py' \
-  MODEL.WEIGHT '/coco/models/R-50.pkl' \
+  MODEL.WEIGHT 'coco/models/R-50.pkl' \
   DISABLE_REDUCED_LOGGING True \
   "${EXTRA_CONFIG[@]}" ; ret_code=$?
 
@@ -61,4 +65,3 @@ result=$(( $end - $start ))
 result_name="OBJECT_DETECTION"
 
 echo "RESULT,$result_name,,$result,nvidia,$start_fmt"
-
