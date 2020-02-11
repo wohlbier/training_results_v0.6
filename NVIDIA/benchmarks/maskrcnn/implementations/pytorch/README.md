@@ -45,7 +45,7 @@ Steps required to launch single node training on NVIDIA DGX-2:
 
 ```
 docker build --build-arg PROXY=$http_proxy --pull -t mlperf-nvidia:object_detection .
-nvidia-docker run -v /home/jgwohlbier/mlperf/data/object_detection/coco:/workspace/object_detection/coco --shm-size=32768m --security-opt seccomp=seccomp.json -it mlperf-nvidia:object_detection /bin/bash
+nvidia-docker run -v /raid/user-scratch/jgwohlbier/mlperf/data/object_detection/coco:/workspace/object_detection/coco --shm-size=32768m --security-opt seccomp=seccomp.json -it mlperf-nvidia:object_detection /bin/bash
 # DATADIR=<path/to/data/dir> LOGDIR=<path/to/output/dir> PULL=0 DGXSYSTEM=DGX2 ./run.sub
 ```
 

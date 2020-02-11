@@ -12,7 +12,7 @@ EXTRA_CONFIG=(
                "SOLVER.IMS_PER_BATCH" "96"
                "TEST.IMS_PER_BATCH" "16"
                "MODEL.RPN.FPN_POST_NMS_TOP_N_TRAIN" "6000"
-               "NHWC" "True"   
+               "NHWC" "True"
              )
 
 ## System run parms
