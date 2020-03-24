@@ -38,6 +38,11 @@ docker build --pull -t  mlperf-nvidia:image_classification .
 DATADIR=<path/to/data/dir> LOGDIR=<path/to/output/dir> DGXSYSTEM=DGX2 ./run.sub
 ```
 
+#jgw
+```
+docker build --build-arg PROXY=myproxy.com --pull -t  mlperf-nvidia:image_classification .
+```
+
 ### NVIDIA DGX-1 (multi node)
 Launch configuration and system-specific hyperparameters for the NVIDIA DGX-1
 multi node submission are in the `config_DGX1_multi.sh` script.
@@ -71,8 +76,3 @@ docker push <docker/registry>/mlperf-nvidia:image_classification
 ```
 source config_DGX2_multi.sh && CONT="<docker/registry>/mlperf-nvidia:image_classification" DATADIR=<path/to/data/dir> LOGDIR=<path/to/output/dir> DGXSYSTEM=DGX2_multi sbatch -N $DGXNNODES -t $WALLTIME --ntasks-per-node $DGXNGPU run.sub
 ```
-
-
-
-
-

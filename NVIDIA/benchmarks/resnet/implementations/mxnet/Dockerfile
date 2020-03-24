@@ -15,6 +15,10 @@
 ARG FROM_IMAGE_NAME=nvcr.io/nvidia/mxnet:19.05-py3
 FROM ${FROM_IMAGE_NAME}
 
+ARG PROXY
+ENV http_proxy $PROXY
+ENV https_proxy $PROXY
+
 # Install dependencies for system configuration logger
 RUN apt-get update && apt-get install -y --no-install-recommends \
         infiniband-diags \
