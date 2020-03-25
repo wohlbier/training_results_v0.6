@@ -44,7 +44,7 @@ docker build --build-arg PROXY=myproxy.com --pull -t  mlperf-nvidia:image_classi
 DATADIR=/raid/user-scratch/jgwohlbier/mlperf/data/image_classification LOGDIR=$(pwd)/log DGXSYSTEM=DGX2 ./run.sub
 ```
 I have added echos of the docker commands that run.sub issues so that one
-could do docker run, and docker exec.
+could do `docker run`, and `docker exec`.
 
 Note that if changes are made to `run_and_time.sh` one has to rebuild the
 container.
