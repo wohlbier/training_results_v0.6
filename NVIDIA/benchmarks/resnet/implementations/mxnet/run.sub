@@ -6,7 +6,7 @@
 #SBATCH --mem=0                 # all mem avail
 #SBATCH --mail-type=FAIL        # only send email on failure
 #SBATCH --threads-per-core=2    # HT is on
-#SBATCH --cores-per-socket=20   # 20 cores on each socket 
+#SBATCH --cores-per-socket=20   # 20 cores on each socket
 #SBATCH --overcommit
 
 DATESTAMP=${DATESTAMP:-`date +'%y%m%d%H%M%S%N'`}
@@ -15,7 +15,7 @@ DATESTAMP=${DATESTAMP:-`date +'%y%m%d%H%M%S%N'`}
 BENCHMARK=${BENCHMARK:-"image_classification"}
 BENCHMARK_NAME="RESNET"
 CONT=${CONT:-"mlperf-nvidia:$BENCHMARK"}
-DATADIR=${DATADIR:-"/raid/data/imagenet/train-val-recordio-passthrough"} 
+DATADIR=${DATADIR:-"/raid/data/imagenet/train-val-recordio-passthrough"}
 LOGDIR=${LOGDIR:-"/raid/results/$BENCHMARK"}
 SEED=${SEED:-$(od -A n -t d -N 3 /dev/urandom)} # Allows passing SEED in, which is helpful if NEXP=1 ; for NEXP>1 we need to pick different seeds for subsequent runs
 #CODEDIR=${CODEDIR:-$(readlink -f $(dirname ${BASH_SOURCE[0]}))} # SLURM normally copies these files to someplace in /var by default, so best to set this explicitly
@@ -27,13 +27,14 @@ CONTAINER_GID=0
 
 # MLPerf-specific stuff
 NEXP=${NEXP:-5} # Default number of times to run the benchmark
+NEXP=1 #jgw#
 CLEAR_CACHES=1
 SYSLOGGING=1
 LOG_CLEAR_CACHES="'from mlperf_compliance import constants, mlperf_log as log; import os; log.mlperf_print(key=constants.CACHE_CLEAR, value=True, benchmark=constants.${BENCHMARK_NAME}, stack_offset=0, root_dir=\"`pwd`\", extra_print=False)'"
 SYS_LOG_GET="'import mlperf_compliance; from mlperf_log_utils import mlperf_submission_log; mlperf_submission_log(mlperf_compliance.constants.$BENCHMARK_NAME)'"
 
 ################################################################################
-## DO NOT CHANGE ANYTHING BELOW -- DL params are in run_and_time.sh and config_<system>.sh files 
+## DO NOT CHANGE ANYTHING BELOW -- DL params are in run_and_time.sh and config_<system>.sh files
 ################################################################################
 
 ## Load system-specific parameters for benchmark
@@ -58,6 +59,10 @@ if [[ -z "$SLURM_NTASKS_PER_NODE" ]]; then
   export SLURM_NTASKS_PER_NODE="${DGXNGPU}"
 fi
 
+echo "SLURM_JOB_ID: $SLURM_JOB_ID"
+echo "SLURM_JOB_NUM_NODES: $SLURM_JOB_NUM_NODES"
+echo "OMPI_COMM_WORLD_LOCAL_RANK: $OMPI_COMM_WORLD_LOCAL_RANK"
+
 # Create results directory
 LOGFILE_BASE="${LOGDIR}/${DATESTAMP}"
 mkdir -m 777 -p $(dirname "${LOGFILE_BASE}")
@@ -80,6 +85,7 @@ VARS=(
        -e "SLURM_NTASKS_PER_NODE=${SLURM_NTASKS_PER_NODE}"
        -e "OMPI_MCA_mca_base_param_files=/dev/shm/mpi/${SLURM_JOB_ID}/mca_params.conf"
      )
+echo "VARS: ${VARS[@]}"
 
 ## Set container name to be used on all nodes
 export CONTNAME="mpi_${SLURM_JOB_ID}"
@@ -103,11 +109,13 @@ else
 fi
 
 ## Pull image on all nodes by default
+echo "PULL: ${PULL}, CONT: ${CONT}"
 [[ "${PULL}" -ne "0" ]] && $SRUNl docker pull $CONT
 
 ##########################################
 ## Configure multinode
 ##########################################
+echo "SLURM_JOB_NUM_NODES: $SLURM_JOB_NUM_NODES, KVSTORE: $KVSTORE"
 if [[ $SLURM_JOB_NUM_NODES -gt 1 || $KVSTORE =~ "horovod" ]]; then
 
   # systemd needs to be told not to wipe /dev/shm when the user context ends.
@@ -158,12 +166,15 @@ DOCKERRUN_ARGS=(
 echo
 echo "Creating containers:"
 $SRUNl bash -c "echo -n 'Launching on node ' && hostname"
+echo "$SRUNl nvidia-docker run --init -d "${DOCKERRUN_ARGS[@]}" --name $CONTNAME $VOLS "${VARS[@]}" $CONT bash -c 'rm -f /etc/shinit && sleep infinity' ; rv=$?"
 $SRUNl nvidia-docker run --init -d "${DOCKERRUN_ARGS[@]}" --name $CONTNAME $VOLS "${VARS[@]}" $CONT bash -c 'rm -f /etc/shinit && sleep infinity' ; rv=$?
 
 [[ $rv -ne 0 ]] && echo "ERR: Container launch failed." && exit $rv
 
-sleep 30
+#sleep 30
+sleep 10
 
+echo "docker logs $CONTNAME"
 docker logs $CONTNAME
 
 if [[ $SLURM_JOB_NUM_NODES -gt 1 ]] || [[ $DGXSYSTEM =~ "_multi_" ]]; then
@@ -185,7 +196,8 @@ for nrun in `seq 1 $NEXP`; do
 
     echo "Run vars: id $SLURM_JOB_ID"
 
-    if [[ $SYSLOGGING -eq 1 ]]; then 
+    echo "SYSLOGGING: $SYSLOGGING"
+    if [[ $SYSLOGGING -eq 1 ]]; then
       # Clear RAM cache dentries and inodes
         VARS_STR="${VARS[@]}"
         bash -c "echo -n 'Gathering sys log on ' && hostname && docker exec $VARS_STR $CONTNAME python -c ${SYS_LOG_GET}"
@@ -195,6 +207,7 @@ for nrun in `seq 1 $NEXP`; do
         fi
     fi
 
+    echo "CLEAR_CACHES: ${CLEAR_CACHES}"
     if [[ $CLEAR_CACHES -eq 1 ]]; then
       # Clear RAM cache dentries and inodes
       if [[ $INSLURM -eq 1 ]]; then
@@ -209,10 +222,10 @@ for nrun in `seq 1 $NEXP`; do
     fi
 
     # Launching app
-    echo 
+    echo
     echo "Launching user script on master node:"
+    echo "docker exec "${VARS[@]}" $CONTNAME "${MPIRUN[@]}" ./run_and_time.sh ; exit $?"
     docker exec "${VARS[@]}" $CONTNAME "${MPIRUN[@]}" ./run_and_time.sh ; exit $?
-
   ) |& tee ${LOGFILE_BASE}_$nrun.log
 
   rv=${PIPESTATUS[0]}

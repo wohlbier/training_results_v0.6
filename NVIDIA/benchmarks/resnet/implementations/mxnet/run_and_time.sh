@@ -1,5 +1,5 @@
 #!/bin/bash
-#
+
 # runs benchmark and reports time to convergence
 # to use the script:
 #   run_and_time.sh
@@ -50,6 +50,9 @@ fi
 
 DATAROOT="/data"
 
+echo "ls DATAROOT"
+ls ${DATAROOT}
+
 echo "running benchmark"
 export NGPUS=$SLURM_NTASKS_PER_NODE
 GPUS=$(seq 0 $(($NGPUS - 1)) | tr "\n" "," | sed 's/,$//')
@@ -72,7 +75,7 @@ PARAMS=(
       --accuracy-threshold "${THR}"
       --seed               "${SEED}"
       --dtype              "float16"
-      --use-dali 
+      --use-dali
       --disp-batches       "20"
       --image-shape        "4,224,224"
       --fuse-bn-relu       "1"
@@ -102,7 +105,8 @@ if [[ "${KVSTORE}" == "horovod" ]]; then
    DGXSYSTEM=${DGXSYSTEM:-DGX1}
    BIND="./ompi_bind_${DGXSYSTEM/_multi*/}.sh"
 fi
-${BIND} python train_imagenet.py "${PARAMS[@]}"; ret_code=$?
+echo "${BIND} python train_imagenet.py "${PARAMS[@]}"; ret_code=$?"
+#${BIND} python train_imagenet.py "${PARAMS[@]}"; ret_code=$?
 
 sleep 3
 
