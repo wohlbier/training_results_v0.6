@@ -5,7 +5,7 @@ echo "using config_DGX2.sh"
 ## DL params
 OPTIMIZER="sgdwfastlars"
 BATCHSIZE="208"
-#KVSTORE="horovod"
+KVSTORE="horovod"
 LR="10"
 WARMUP_EPOCHS="5"
 EVAL_OFFSET="3" # Targeting epoch no. 60
