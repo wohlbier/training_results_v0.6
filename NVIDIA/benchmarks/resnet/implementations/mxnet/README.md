@@ -50,7 +50,6 @@ Note that if changes are made to `run_and_time.sh` one has to rebuild the
 container.
 
 Getting the data ready.
-bridges.
 ```
 docker pull nvcr.io/nvidia/mxnet:20.03-py3
 docker run --gpus all -it --rm -v /raid/user-scratch/jgwohlbier/mlperf/data/image_classification:/data nvcr.io/nvidia/mxnet:20.03-py3
