@@ -49,13 +49,13 @@ could do `docker run`, and `docker exec`.
 Note that if changes are made to `run_and_time.sh` one has to rebuild the
 container.
 
-Getting the data ready. Assuming in imagenet data location. Did this on
+Getting the data ready.
 bridges.
 ```
-conda create -n opencv_env python=3 opencv mxnet
-conda activate opencv_env
-git clone git@github.com:apache/incubator-mxnet.git mxnet
-# find im2rec.py in mxnet/tools
+docker pull nvcr.io/nvidia/mxnet:20.03-py3
+docker run --gpus all -it --rm -v /raid/user-scratch/jgwohlbier/mlperf/data/image_classification:/data nvcr.io/nvidia/mxnet:20.03-py3
+# copy this file
+# https://github.com/apache/incubator-mxnet/blob/master/tools/im2rec.py
 python im2rec.py --list --recursive val val
 python im2rec.py --pass-through --num-thread 14 --recursive val.lst val
 python im2rec.py --list --recursive train train

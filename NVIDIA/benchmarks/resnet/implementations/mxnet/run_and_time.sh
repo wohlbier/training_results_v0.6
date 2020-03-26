@@ -106,7 +106,7 @@ if [[ "${KVSTORE}" == "horovod" ]]; then
    BIND="./ompi_bind_${DGXSYSTEM/_multi*/}.sh"
 fi
 echo "${BIND} python train_imagenet.py "${PARAMS[@]}"; ret_code=$?"
-#${BIND} python train_imagenet.py "${PARAMS[@]}"; ret_code=$?
+${BIND} python train_imagenet.py "${PARAMS[@]}"; ret_code=$?
 
 sleep 3
 
