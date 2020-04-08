@@ -43,8 +43,9 @@ single node submission are in the `config_DGX2.sh` script.
 Steps required to launch single node training on NVIDIA DGX-2:
 
 ```
-docker build --pull -t mlperf-nvidia:rnn_translator .
-DATADIR=<path/to/data/dir> LOGDIR=<path/to/output/dir> PULL=0 DGXSYSTEM=DGX2 ./run.sub
+docker build --build-arg PROXY=$http_proxy --pull -t mlperf-nvidia:rnn_translator .
+screen -S rnn_translator
+DATADIR=/raid/user-scratch/jgwohlbier/mlperf/data/rnn_translator LOGDIR=/raid/user-scratch/jgwohlbier/mlperf/training_results_v0.6/NVIDIA/benchmarks/gnmt/implementations/pytorch/log PULL=0 DGXSYSTEM=DGX2 ./run.sub
 ```
 
 ### NVIDIA DGX-1 (multi node)
